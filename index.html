@@ -3,848 +3,490 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>One Bus Replaces — BC Transit</title>
+<title>Better Buses, Better Cities</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
-
-  :root {
-    --bg: #0c1021;
-    --bg-surface: #131833;
-    --bg-card: #1a2040;
-    --bg-card-hover: #1f264d;
-    --border: rgba(255,255,255,0.06);
-    --border-active: rgba(255,255,255,0.15);
-
-    --accent: #ff5c5c;
-    --accent-soft: rgba(255, 92, 92, 0.15);
-    --bus: #22d3a7;
-    --bus-soft: rgba(34, 211, 167, 0.15);
-    --bus-glow: rgba(34, 211, 167, 0.25);
-    --gold: #f0c040;
-    --gold-soft: rgba(240, 192, 64, 0.15);
-    --blue: #5b9cf5;
-
-    --text: #d0d4e8;
-    --text-dim: rgba(255,255,255,0.4);
-    --text-bright: #f0f2ff;
-    --text-muted: rgba(255,255,255,0.55);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Outfit', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Subtle grain overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 9999;
-  }
-
-  .container {
-    max-width: 1140px;
-    margin: 0 auto;
-    padding: 48px 24px 72px;
-  }
-
-  /* ─── HEADER ─── */
-  .header {
-    text-align: center;
-    margin-bottom: 48px;
-    animation: fadeUp 0.6s ease-out;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .header .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--bus);
-    margin-bottom: 16px;
-    font-weight: 600;
-  }
-
-  .header h1 {
-    font-size: clamp(32px, 5.5vw, 56px);
-    font-weight: 800;
-    line-height: 1.05;
-    color: var(--text-bright);
-    margin-bottom: 16px;
-    letter-spacing: -1px;
-  }
-
-  .header h1 .car-num {
-    color: var(--accent);
-    transition: color 0.3s;
-  }
-
-  .header .subtitle {
-    font-size: 17px;
-    color: var(--text-muted);
-    max-width: 580px;
-    margin: 0 auto;
-    line-height: 1.65;
-    font-weight: 300;
-  }
-
-  /* ─── SCENARIOS ─── */
-  .scenarios-section {
-    margin-bottom: 36px;
-    animation: fadeUp 0.6s ease-out 0.1s both;
-  }
-
-  .section-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 12px;
-    padding-left: 4px;
-  }
-
-  .scenarios-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 10px;
-  }
-
-  .scenario-card {
-    background: var(--bg-card);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 18px;
-    cursor: pointer;
-    transition: all 0.25s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .scenario-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--bus);
-    opacity: 0;
-    transition: opacity 0.25s;
-  }
-
-  .scenario-card:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border-active);
-    transform: translateY(-2px);
-  }
-
-  .scenario-card.active {
-    border-color: var(--bus);
-    background: var(--bus-soft);
-  }
-
-  .scenario-card.active::before {
-    opacity: 1;
-  }
-
-  .scenario-route {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--bus);
-    margin-bottom: 4px;
-  }
-
-  .scenario-corridor {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-bright);
-    margin-bottom: 2px;
-  }
-
-  .scenario-detail {
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-
-  .scenario-pax {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 28px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.08);
-    transition: color 0.25s;
-  }
-
-  .scenario-card.active .scenario-pax {
-    color: rgba(34, 211, 167, 0.2);
-  }
-
-  /* ─── CONTROLS ─── */
-  .controls-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 28px;
-    align-items: flex-end;
-    margin-bottom: 36px;
-    padding: 20px 24px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    animation: fadeUp 0.6s ease-out 0.2s both;
-  }
-
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .control-group.grow { flex: 1; min-width: 200px; }
-
-  .ctrl-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-
-  .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .slider-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--bus);
-    min-width: 48px;
-    text-align: right;
-    line-height: 1;
-  }
-
-  input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    flex: 1;
-    height: 5px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 3px;
-    outline: none;
-    cursor: pointer;
-  }
-
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: var(--bus);
-    box-shadow: 0 0 14px var(--bus-glow);
-    cursor: grab;
-    transition: transform 0.15s;
-  }
-
-  input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-  }
-
-  .pill-group {
-    display: flex;
-    gap: 4px;
-  }
-
-  .pill {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 7px 16px;
-    border: 1.5px solid rgba(255,255,255,0.1);
-    background: transparent;
-    color: var(--text-dim);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .pill:hover {
-    border-color: rgba(255,255,255,0.2);
-    color: var(--text);
-  }
-
-  .pill.active {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: white;
-  }
-
-  /* ─── EQUATION + CAPACITY ─── */
-  .equation-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-    animation: fadeUp 0.6s ease-out 0.3s both;
-  }
-
-  .eq-main {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: clamp(20px, 3.5vw, 32px);
-    font-weight: 700;
-    color: var(--text-bright);
-  }
-
-  .eq-bus { color: var(--bus); }
-  .eq-cars { color: var(--accent); }
-  .eq-dim { color: var(--text-dim); margin: 0 4px; }
-
-  .capacity-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 24px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.4s;
-  }
-
-  .capacity-badge .cap-pct {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 15px;
-  }
-
-  .capacity-badge.full {
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-
-  .capacity-badge.busy {
-    background: var(--gold-soft);
-    color: var(--gold);
-  }
-
-  .capacity-badge.comfy {
-    background: var(--bus-soft);
-    color: var(--bus);
-  }
-
-  .capacity-message {
-    text-align: center;
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 32px;
-    min-height: 20px;
-    font-weight: 300;
-    transition: opacity 0.3s;
-  }
-
-  /* ─── VISUAL AREA ─── */
-  .visual {
-    display: flex;
-    gap: 28px;
-    align-items: flex-start;
-    margin-bottom: 40px;
-    animation: fadeUp 0.6s ease-out 0.35s both;
-    min-height: 320px;
-  }
-
-  .bus-col {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    width: 76px;
-  }
-
-  .bus-col-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--bus);
-    white-space: nowrap;
-  }
-
-  .bus-wrap {
-    position: relative;
-  }
-
-  .bus-wrap::after {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: 24px;
-    background: var(--bus-glow);
-    filter: blur(18px);
-    z-index: 0;
-  }
-
-  .bus-wrap svg { position: relative; z-index: 1; }
-
-  .bus-fill-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--bus);
-  }
-
-  .cars-col { flex: 1; min-width: 0; }
-
-  .cars-col-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-    text-align: center;
-  }
-
-  .cars-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: flex-start;
-  }
-
-  .car-slot {
-    width: 38px;
-    height: 64px;
-    opacity: 0;
-    transform: scale(0.75);
-    animation: popIn 0.2s forwards;
-  }
-
-  @keyframes popIn {
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  /* ─── STATS ─── */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 48px;
-    animation: fadeUp 0.6s ease-out 0.4s both;
-  }
-
-  .stat {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    transition: transform 0.2s;
-  }
-
-  .stat:hover { transform: translateY(-2px); }
-
-  .stat-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-
-  .stat-num.red { color: var(--accent); }
-  .stat-num.gold { color: var(--gold); }
-  .stat-num.green { color: var(--bus); }
-  .stat-num.blue { color: var(--blue); }
-
-  .stat-desc {
-    font-size: 12px;
-    color: var(--text-dim);
-    line-height: 1.5;
-  }
-
-  /* ─── FOOTER ─── */
-  .footer {
-    text-align: center;
-    padding: 24px 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .footer p {
-    font-size: 11px;
-    color: var(--text-dim);
-    line-height: 1.7;
-    max-width: 680px;
-    margin: 0 auto;
-  }
-
-  .footer .brand { color: var(--bus); font-weight: 600; }
-
-  /* ─── RESPONSIVE ─── */
-  @media (max-width: 700px) {
-    .visual { flex-direction: column; align-items: center; }
-    .bus-col { flex-direction: row; width: auto; gap: 14px; }
-    .car-slot { width: 30px; height: 52px; }
-    .controls-bar { gap: 18px; }
-    .scenarios-grid { grid-template-columns: 1fr; }
-  }
+:root {
+  --bg:#0c1021; --bg2:#131833; --bg3:#1a2040; --bg3h:#1f264d;
+  --bdr:rgba(255,255,255,0.06); --bdr2:rgba(255,255,255,0.15);
+  --accent:#ff5c5c; --accS:rgba(255,92,92,0.15);
+  --bus:#22d3a7; --busS:rgba(34,211,167,0.15); --busG:rgba(34,211,167,0.25);
+  --gold:#f0c040; --goldS:rgba(240,192,64,0.15);
+  --blue:#5b9cf5;
+  --txt:#d0d4e8; --dim:rgba(255,255,255,0.4); --bri:#f0f2ff; --mut:rgba(255,255,255,0.55);
+  --road:#1e2845; --lane:rgba(255,255,255,0.18); --asphalt:#161c35;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;overflow-x:hidden;}
+.mono{font-family:'JetBrains Mono','Consolas',monospace;}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px;}
+
+/* ─── SECTION DIVIDERS ─── */
+.act{padding:64px 0 48px;position:relative;}
+.act+.act{border-top:1px solid var(--bdr);}
+.act-tag{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--bus);font-weight:600;margin-bottom:16px;}
+.act-title{font-size:clamp(28px,4.5vw,44px);font-weight:800;color:var(--bri);line-height:1.1;margin-bottom:12px;letter-spacing:-0.5px;}
+.act-title em{font-style:normal;color:var(--accent);}
+.act-sub{font-size:16px;color:var(--mut);max-width:620px;line-height:1.65;font-weight:300;margin-bottom:36px;}
+
+/* ─── HEADER ─── */
+.hero{text-align:center;padding:56px 0 32px;}
+.hero .act-sub{margin:0 auto 36px;}
+
+/* ─── SCENARIO CARDS ─── */
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:32px;}
+.sc{background:var(--bg3);border:1.5px solid var(--bdr);border-radius:12px;padding:14px 16px;cursor:pointer;position:relative;overflow:hidden;transition:all .25s;}
+.sc:hover{background:var(--bg3h);border-color:var(--bdr2);transform:translateY(-2px);}
+.sc.on{border-color:var(--bus);background:var(--busS);}
+.sc .r{font-size:13px;font-weight:700;color:var(--bus);margin-bottom:3px;}
+.sc .c{font-size:14px;font-weight:600;color:var(--bri);margin-bottom:2px;}
+.sc .d{font-size:12px;color:var(--dim);}
+.sc .p{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:26px;font-weight:700;color:rgba(255,255,255,0.07);}
+.sc.on .p{color:rgba(34,211,167,0.2);}
+
+/* ─── CONTROLS ─── */
+.ctrls{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;margin-bottom:28px;padding:18px 22px;background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;}
+.cg{display:flex;flex-direction:column;gap:7px;}
+.cg.grow{flex:1;min-width:180px;}
+.cl{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);}
+.sr{display:flex;align-items:center;gap:12px;}
+.sv{font-size:30px;font-weight:700;color:var(--bus);min-width:44px;text-align:right;line-height:1;}
+input[type=range]{-webkit-appearance:none;flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;outline:none;cursor:pointer;border:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--bus);box-shadow:0 0 12px var(--busG);cursor:grab;}
+.pg{display:flex;gap:4px;}
+.pi{font-size:13px;font-weight:600;padding:7px 15px;border:1.5px solid rgba(255,255,255,0.1);background:transparent;color:var(--dim);border-radius:8px;cursor:pointer;transition:all .2s;}
+.pi:hover{border-color:rgba(255,255,255,0.2);color:var(--txt);}
+.pi.on{border-color:var(--accent);background:var(--accent);color:#fff;}
+
+/* ─── EQUATION + CAP ─── */
+.eqr{display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:10px;}
+.eqm{font-size:clamp(18px,3vw,28px);font-weight:700;color:var(--bri);}
+.eqb{color:var(--bus);}
+.eqc{color:var(--accent);}
+.eqd{color:var(--dim);margin:0 4px;}
+.cb{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:500;}
+.cb .cv{font-weight:700;font-size:14px;}
+.cb.f{background:var(--accS);color:var(--accent);}
+.cb.b{background:var(--goldS);color:var(--gold);}
+.cb.k{background:var(--busS);color:var(--bus);}
+.cm{text-align:center;font-size:14px;color:var(--mut);margin-bottom:28px;min-height:20px;font-weight:300;}
+
+/* ─── TWO-LANE ROAD VISUAL ─── */
+.road-wrap{margin-bottom:36px;overflow-x:auto;padding-bottom:12px;}
+.road-scene{position:relative;min-height:180px;}
+.road-surface{background:var(--asphalt);border-radius:10px;padding:16px 20px;border:1px solid var(--bdr);position:relative;overflow:hidden;transition:min-height 0.3s;}
+.road-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:600;}
+.road-label.bus-l{color:var(--bus);}
+.road-label.car-l{color:var(--dim);}
+.lane-container{position:relative;display:flex;flex-direction:column;gap:0;}
+.lane{display:flex;align-items:center;gap:6px;padding:6px 0;flex-wrap:wrap;}
+.lane+.lane{border-top:2px dashed var(--lane);}
+.road-edge-top,.road-edge-bot{height:3px;background:var(--lane);border-radius:2px;margin:0 -20px;}
+.bus-icon-road{width:108px;height:44px;flex-shrink:0;position:relative;}
+.bus-icon-road::after{content:'';position:absolute;inset:-3px;border-radius:10px;background:var(--busG);filter:blur(10px);z-index:0;}
+.bus-icon-road svg{position:relative;z-index:1;}
+.car-road{width:40px;height:38px;flex-shrink:0;opacity:0;animation:cPop .15s forwards;}
+@keyframes cPop{to{opacity:1;}}
+
+/* ─── STATS ─── */
+.sts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:24px;}
+.st{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:18px;text-align:center;transition:transform .2s;}
+.st:hover{transform:translateY(-2px);}
+.sn{font-size:26px;font-weight:700;margin-bottom:3px;}
+.sn.red{color:var(--accent);}.sn.gld{color:var(--gold);}.sn.grn{color:var(--bus);}.sn.blu{color:var(--blue);}
+.sd{font-size:11px;color:var(--dim);line-height:1.5;}
+
+/* ─── ACT 2: CORRIDOR CARDS ─── */
+.corr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:36px;}
+.corr-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:16px;padding:28px;position:relative;overflow:hidden;}
+.corr-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--bus),var(--accent));}
+.corr-name{font-size:22px;font-weight:700;color:var(--bri);margin-bottom:4px;}
+.corr-road{font-size:13px;color:var(--mut);margin-bottom:16px;}
+.corr-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cs-item{text-align:center;padding:12px 8px;background:var(--bg3);border-radius:10px;}
+.cs-val{font-size:22px;font-weight:700;margin-bottom:2px;}
+.cs-lbl{font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;}
+.corr-transit{margin-top:16px;padding:12px 16px;background:var(--busS);border-radius:10px;border:1px solid rgba(34,211,167,0.15);}
+.ct-route{font-size:14px;font-weight:600;color:var(--bus);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--mut);}
+.corr-callout{margin-top:12px;font-size:13px;color:var(--gold);font-weight:500;line-height:1.5;}
+
+/* ─── ACT 3: WHAT IF ─── */
+.wif-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:16px;padding:28px;margin-bottom:20px;}
+.wif-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.wif-title{font-size:18px;font-weight:700;color:var(--bri);}
+.wif-pct{font-size:36px;font-weight:700;color:var(--accent);}
+.wif-slider-row{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.wif-slider-row input[type=range]{flex:1;}
+.wif-slider-row .wif-range-label{font-size:11px;color:var(--dim);white-space:nowrap;}
+.wif-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+.wr{text-align:center;padding:14px 10px;background:var(--bg3);border-radius:10px;}
+.wr-val{font-size:24px;font-weight:700;margin-bottom:2px;}
+.wr-lbl{font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;line-height:1.4;}
+.wif-note{margin-top:16px;font-size:12px;color:var(--dim);line-height:1.6;text-align:center;}
+
+/* ─── FOOTER ─── */
+.ft{text-align:center;padding:32px 0;border-top:1px solid var(--bdr);}
+.ft p{font-size:11px;color:var(--dim);line-height:1.7;max-width:700px;margin:0 auto;}
+.ft .br{color:var(--bus);font-weight:600;}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:700px){
+  .sc-grid{grid-template-columns:1fr;}
+  .corr-grid{grid-template-columns:1fr;}
+  .ctrls{gap:16px;}
+}
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="wrap">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="eyebrow">BC Transit · Enterprise Data &amp; Analytics</div>
-    <h1>One Bus. <span class="car-num" id="titleCarCount">35</span>&nbsp;Cars.</h1>
-    <p class="subtitle">How much road space and parking does a single BC Transit bus save compared to private vehicles? Explore real corridor data or adjust the numbers yourself.</p>
-  </div>
-
-  <!-- SCENARIOS -->
-  <div class="scenarios-section">
-    <div class="section-label">Real-time corridor data · 2026</div>
-    <div class="scenarios-grid" id="scenarioGrid"></div>
-  </div>
-
-  <!-- CONTROLS -->
-  <div class="controls-bar">
-    <div class="control-group grow">
-      <div class="ctrl-label">Passengers on bus</div>
-      <div class="slider-row">
-        <span class="slider-val" id="paxVal">70</span>
-        <input type="range" id="paxSlider" min="5" max="90" value="70" step="1">
-      </div>
-    </div>
-    <div class="control-group">
-      <div class="ctrl-label">Passengers per car</div>
-      <div class="pill-group" id="ppcGroup">
-        <button class="pill active" data-v="1">1</button>
-        <button class="pill" data-v="2">2</button>
-        <button class="pill" data-v="3">3</button>
-        <button class="pill" data-v="4">4</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- EQUATION + CAPACITY -->
-  <div class="equation-row">
-    <span class="eq-main">
-      <span class="eq-bus">One Bus</span>
-      <span class="eq-dim">=</span>
-      <span class="eq-cars" id="eqCars">70</span> Cars
-    </span>
-    <span class="capacity-badge comfy" id="capBadge">
-      <span class="cap-pct" id="capPct">97%</span> <span id="capWord">full</span>
-    </span>
-  </div>
-  <div class="capacity-message" id="capMsg">This bus is nearly full — and it's keeping 70 cars off the road.</div>
-
-  <!-- VISUAL -->
-  <div class="visual">
-    <div class="bus-col">
-      <span class="bus-col-label">One Bus</span>
-      <div class="bus-wrap"><svg id="busSvg" width="60" height="190" viewBox="0 0 60 190"></svg></div>
-      <span class="bus-fill-label" id="busPctLabel">97% full</span>
-    </div>
-    <div class="cars-col">
-      <div class="cars-col-label" id="carsLabel">= 70 cars on the road</div>
-      <div class="cars-grid" id="carsGrid"></div>
-    </div>
-  </div>
-
-  <!-- STATS -->
-  <div class="stats-row">
-    <div class="stat">
-      <div class="stat-num red" id="sRoad">1,960 m²</div>
-      <div class="stat-desc">Road space those<br>cars need moving</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num gold" id="sPark">1,050 m²</div>
-      <div class="stat-desc">Parking space at<br>their destination</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num green" id="sRatio">27 : 1</div>
-      <div class="stat-desc">Road space ratio<br>cars vs one bus</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num blue" id="sLots">1.4</div>
-      <div class="stat-desc">Parking lots filled<br>(~50 stalls each)</div>
-    </div>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <p>
-      <span class="brand">BC Transit</span> &middot;
-      A standard 40-ft bus: ~72 m² road footprint. Double-decker: ~76 m².
-      Each car in motion: ~28 m² (vehicle + following gap &times; lane width).
-      Each parked car: ~15 m² (stall + shared aisle).
-      Corridor data from Automatic Passenger Counter sensors, Jan–Mar 2026.
-      Capacity = seated capacity of assigned vehicle type.
-    </p>
-  </div>
-
+<!-- ═══════════════ HERO ═══════════════ -->
+<div class="hero act">
+  <!-- <div class="act-tag mono">BC Transit · Enterprise Data &amp; Analytics</div> -->
+  <div class="act-title">Better Buses, <em>Better Cities</em></div>
+  <div class="act-sub">What if we could see the invisible cost of how we move? Every car on the road claims space — on the highway, at the destination, in our neighbourhoods. Here's what the numbers look like.</div>
 </div>
 
+<!-- ═══════════════ ACT 1 ═══════════════ -->
+<div class="act" id="act1">
+  <div class="act-tag mono">Part 1 · What one bus already saves</div>
+  <div class="act-title">One Bus. <em id="a1cars">70</em> Cars.</div>
+  <div class="act-sub">Click a real corridor scenario from our 2026 sensor data, or adjust the sliders yourself.</div>
+
+  <div class="sc-grid" id="scGrid">
+    <div class="sc on" onclick="setSc(0)" id="sc0"><div class="r mono">Route 70X</div><div class="c">Hwy 17 — Ferry Express</div><div class="d">Midday · Swartz Bay → Royal Oak</div><div class="p mono">70</div></div>
+    <div class="sc" onclick="setSc(1)" id="sc1"><div class="r mono">Route 95</div><div class="c">Douglas St / Trans-Canada</div><div class="d">PM Peak · Downtown → Langford</div><div class="p mono">50</div></div>
+    <div class="sc" onclick="setSc(2)" id="sc2"><div class="r mono">Route 4</div><div class="c">Hillside Ave</div><div class="d">PM Peak · UVic → Downtown</div><div class="p mono">35</div></div>
+    <div class="sc" onclick="setSc(3)" id="sc3"><div class="r mono">Route 14</div><div class="c">Fort St / Yates</div><div class="d">PM Peak · UVic → Downtown</div><div class="p mono">21</div></div>
+  </div>
+
+  <div class="ctrls">
+    <div class="cg grow"><div class="cl mono">Passengers on bus</div><div class="sr"><span class="sv mono" id="pxV">70</span><input type="range" id="pxS" min="5" max="90" value="70" oninput="freeSlide(this.value)"></div></div>
+    <div class="cg"><div class="cl mono">Passengers per car</div><div class="pg"><span class="pi mono on" onclick="setPpc(1)" id="pp1">1</span><span class="pi mono" onclick="setPpc(2)" id="pp2">2</span><span class="pi mono" onclick="setPpc(3)" id="pp3">3</span><span class="pi mono" onclick="setPpc(4)" id="pp4">4</span></div></div>
+  </div>
+
+  <div class="eqr">
+    <span class="eqm mono"><span class="eqb">One Bus</span><span class="eqd">=</span><span class="eqc" id="eqC">70</span> Cars</span>
+    <span class="cb k" id="capB"><span class="cv mono" id="capP">97%</span> <span>of seated capacity</span></span>
+  </div>
+  <div class="cm" id="capM"></div>
+
+  <!-- TWO-LANE ROAD VISUAL -->
+  <div class="road-wrap">
+    <div class="road-surface" id="busRoadSurface">
+      <div class="road-label bus-l mono">One bus</div>
+      <div class="road-edge-top"></div>
+      <div class="lane-container">
+        <div class="lane" id="busLane1"></div>
+        <div class="lane" id="busLane2"></div>
+      </div>
+      <div class="road-edge-bot" style="margin-top:4px;"></div>
+    </div>
+    <div style="height:16px;"></div>
+    <div class="road-surface" id="carRoadSurface">
+      <div class="road-label car-l mono">= <span id="carsLaneLabel">70</span> cars on the road</div>
+      <div class="road-edge-top"></div>
+      <div class="lane-container">
+        <div class="lane" id="carLane1"></div>
+        <div class="lane" id="carLane2"></div>
+      </div>
+      <div class="road-edge-bot" style="margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <div class="sts">
+    <div class="st"><div class="sn mono red" id="sR">1</div><div class="sd">Hockey rinks of road<br>space for those cars</div></div>
+    <div class="st"><div class="sn mono gld" id="sK">0.5</div><div class="sd">Hockey rinks of<br>parking at destination</div></div>
+    <div class="st"><div class="sn mono grn" id="sA">27 : 1</div><div class="sd">Road space ratio<br>cars vs one bus</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ ACT 2 ═══════════════ -->
+<div class="act" id="act2">
+  <div class="act-tag mono">Part 2 · The corridors</div>
+  <div class="act-title">Where the <em>congestion</em> lives</div>
+  <div class="act-sub">Two corridors that tens of thousands of Greater Victoria commuters navigate every day — with transit that already has room for more riders.</div>
+
+  <!-- Corridor Map -->
+  <div style="margin-bottom:32px;background:var(--bg2);border:1px solid var(--bdr);border-radius:16px;padding:24px;overflow:hidden;">
+    <svg viewBox="0 0 700 320" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+      <!-- Water background -->
+      <rect width="700" height="320" fill="#0a0e1a" rx="8"/>
+      <!-- Main landmass - southern Vancouver Island shape -->
+      <path d="M40,100 L130,70 L250,55 L370,50 L440,55 L470,80 L480,130 L475,200 L450,260 L380,290 L280,300 L160,280 L80,240 L35,180 Z" fill="#131833" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <!-- Saanich Peninsula - extends north, slightly east of downtown -->
+      <path d="M370,50 L390,30 L410,15 L430,10 L450,15 L460,35 L465,60 L470,80 L440,55 Z" fill="#131833" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <!-- Western reach toward Sooke -->
+      <path d="M40,100 L35,180 L80,240 L60,250 L30,220 L15,170 L20,120 Z" fill="#131833" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+      <!-- Place labels -->
+      <text x="370" y="195" fill="rgba(255,255,255,0.25)" font-size="11" font-family="'JetBrains Mono',monospace" text-anchor="middle">VICTORIA</text>
+      <text x="180" y="155" fill="rgba(255,255,255,0.25)" font-size="10" font-family="'JetBrains Mono',monospace" text-anchor="middle">COLWOOD</text>
+      <text x="135" y="115" fill="rgba(255,255,255,0.25)" font-size="10" font-family="'JetBrains Mono',monospace" text-anchor="middle">LANGFORD</text>
+      <text x="60" y="195" fill="rgba(255,255,255,0.25)" font-size="10" font-family="'JetBrains Mono',monospace" text-anchor="middle">SOOKE</text>
+      <text x="435" y="28" fill="rgba(255,255,255,0.25)" font-size="10" font-family="'JetBrains Mono',monospace" text-anchor="middle">SIDNEY</text>
+      <text x="420" y="110" fill="rgba(255,255,255,0.25)" font-size="10" font-family="'JetBrains Mono',monospace" text-anchor="middle">SAANICH</text>
+      <text x="310" y="145" fill="rgba(255,255,255,0.25)" font-size="10" font-family="'JetBrains Mono',monospace" text-anchor="middle">VIEW ROYAL</text>
+
+      <!-- Highway 1 corridor (Colwood Crawl) - west to downtown -->
+      <path d="M140,125 C180,135 230,150 280,160 C320,168 350,172 370,180" stroke="#ff5c5c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+      <text x="260" y="142" fill="#ff5c5c" font-size="11" font-family="'JetBrains Mono',monospace" font-weight="700">HWY 1</text>
+
+      <!-- Sooke Road corridor - southwest to Colwood -->
+      <path d="M65,210 C90,200 120,180 150,165 C170,155 190,148 210,145" stroke="#f0c040" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+      <text x="80" y="230" fill="#f0c040" font-size="10" font-family="'JetBrains Mono',monospace" font-weight="600">SOOKE RD</text>
+
+      <!-- Highway 17 - north from downtown up peninsula to Sidney -->
+      <path d="M380,175 C395,150 405,120 415,90 C425,60 430,40 435,20" stroke="rgba(255,255,255,0.12)" stroke-width="2" fill="none" stroke-dasharray="6 4"/>
+      <text x="450" y="75" fill="rgba(255,255,255,0.15)" font-size="9" font-family="'JetBrains Mono',monospace">HWY 17</text>
+
+      <!-- Downtown marker -->
+      <circle cx="370" cy="205" r="5" fill="#22d3a7" opacity="0.7"/>
+      <text x="370" y="220" fill="#22d3a7" font-size="9" font-family="'JetBrains Mono',monospace" text-anchor="middle" opacity="0.7">DOWNTOWN</text>
+
+      <!-- Legend -->
+      <line x1="500" y1="140" x2="525" y2="140" stroke="#ff5c5c" stroke-width="3" stroke-linecap="round"/>
+      <text x="530" y="144" fill="rgba(255,255,255,0.5)" font-size="10" font-family="'JetBrains Mono',monospace">Colwood Crawl</text>
+      <text x="530" y="158" fill="rgba(255,255,255,0.35)" font-size="9" font-family="'JetBrains Mono',monospace">92,186 vehicles/day</text>
+      <line x1="500" y1="180" x2="525" y2="180" stroke="#f0c040" stroke-width="3" stroke-linecap="round"/>
+      <text x="530" y="184" fill="rgba(255,255,255,0.5)" font-size="10" font-family="'JetBrains Mono',monospace">Sooke Road</text>
+      <text x="530" y="198" fill="rgba(255,255,255,0.35)" font-size="9" font-family="'JetBrains Mono',monospace">16,974 vehicles/day</text>
+    </svg>
+  </div>
+
+  <div class="corr-grid">
+    <div class="corr-card">
+      <div class="corr-name">The Colwood Crawl</div>
+      <div class="corr-road">Highway 1 at West Burnside Road · Feb 2025</div>
+      <div class="corr-stats">
+        <div class="cs-item"><div class="cs-val mono red">92,186</div><div class="cs-lbl mono">Vehicles / day</div></div>
+        <div class="cs-item"><div class="cs-val mono red">7,343</div><div class="cs-lbl mono">PM peak hour</div></div>
+        <div class="cs-item"><div class="cs-val mono" style="color:var(--dim)">5</div><div class="cs-lbl mono">Municipalities feeding in</div></div>
+        <div class="cs-item"><div class="cs-val mono" style="color:var(--dim)">2 lanes</div><div class="cs-lbl mono">Bottleneck at peak</div></div>
+      </div>
+      <div class="corr-transit">
+        <div class="ct-route mono">Route 95 · Double-decker</div>
+        <div class="ct-detail">50 passengers avg through this corridor · 87% of seated capacity · there's room</div>
+      </div>
+      <div class="corr-callout">$95M bus-on-shoulder lanes under construction — buses will bypass traffic entirely by 2026–27</div>
+    </div>
+
+    <div class="corr-card">
+      <div class="corr-name">Sooke Road</div>
+      <div class="corr-road">Route 14, 0.8 km west of Humpback Road · Feb 2025</div>
+      <div class="corr-stats">
+        <div class="cs-item"><div class="cs-val mono red">16,974</div><div class="cs-lbl mono">Vehicles / day</div></div>
+        <div class="cs-item"><div class="cs-val mono red">1,463</div><div class="cs-lbl mono">PM peak hour</div></div>
+        <div class="cs-item"><div class="cs-val mono" style="color:var(--dim)">—</div><div class="cs-lbl mono">Growing fast</div></div>
+        <div class="cs-item"><div class="cs-val mono" style="color:var(--dim)">1 road</div><div class="cs-lbl mono">In and out</div></div>
+      </div>
+      <div class="corr-transit">
+        <div class="ct-route mono">Route 61 · Standard 40-ft</div>
+        <div class="ct-detail">22 passengers avg on Sooke Rd segment · 65% of seated capacity · plenty of room</div>
+      </div>
+      <div class="corr-callout">One highway connects Sooke to Victoria — every rider who chooses the bus makes this road work better for everyone</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ACT 3 ═══════════════ -->
+<div class="act" id="act3">
+  <div class="act-tag mono">Part 3 · What if?</div>
+  <div class="act-title">Your car costs <em>more space</em> than you think</div>
+  <div class="act-sub">What if a fraction of peak-hour drivers chose the bus? Move the sliders to see how many buses it would take — and how much road space opens up.</div>
+
+  <div class="wif-card">
+    <div class="wif-header">
+      <div><div class="wif-title">Colwood Crawl · Hwy 1</div><div style="font-size:12px;color:var(--dim);">7,343 cars per PM peak hour</div></div>
+      <div class="wif-pct mono" id="w1pct">5%</div>
+    </div>
+    <div class="wif-slider-row">
+      <span class="wif-range-label mono">1%</span>
+      <input type="range" id="w1s" min="1" max="20" value="5" step="1" oninput="updW1(this.value)">
+      <span class="wif-range-label mono">20%</span>
+    </div>
+    <div class="wif-results">
+      <div class="wr"><div class="wr-val mono grn" id="w1cars">367</div><div class="wr-lbl mono">Fewer cars</div></div>
+      <div class="wr"><div class="wr-val mono blu" id="w1bus">7</div><div class="wr-lbl mono">Buses needed</div></div>
+      <div class="wr"><div class="wr-val mono red" id="w1road">6.5</div><div class="wr-lbl mono">Hockey rinks<br>of road freed</div></div>
+      <div class="wr"><div class="wr-val mono gld" id="w1park">3.5</div><div class="wr-lbl mono">Hockey rinks<br>of parking freed</div></div>
+    </div>
+    <div class="wif-note">Route 95 buses carry 50 passengers at 87% of seated capacity. At 5%, some riders fit on existing service before new buses are needed.</div>
+  </div>
+
+  <div class="wif-card">
+    <div class="wif-header">
+      <div><div class="wif-title">Sooke Road · Route 14</div><div style="font-size:12px;color:var(--dim);">1,463 cars per PM peak hour</div></div>
+      <div class="wif-pct mono" id="w2pct">5%</div>
+    </div>
+    <div class="wif-slider-row">
+      <span class="wif-range-label mono">1%</span>
+      <input type="range" id="w2s" min="1" max="20" value="5" step="1" oninput="updW2(this.value)">
+      <span class="wif-range-label mono">20%</span>
+    </div>
+    <div class="wif-results">
+      <div class="wr"><div class="wr-val mono grn" id="w2cars">73</div><div class="wr-lbl mono">Fewer cars</div></div>
+      <div class="wr"><div class="wr-val mono blu" id="w2bus">3</div><div class="wr-lbl mono">Buses needed</div></div>
+      <div class="wr"><div class="wr-val mono red" id="w2road">1.3</div><div class="wr-lbl mono">Hockey rinks<br>of road freed</div></div>
+      <div class="wr"><div class="wr-val mono gld" id="w2park">0.7</div><div class="wr-lbl mono">Hockey rinks<br>of parking freed</div></div>
+    </div>
+    <div class="wif-note">Route 61 buses carry 22 passengers at 65% of seated capacity. Current service can absorb more riders today — no new buses needed for small mode shifts.</div>
+  </div>
+
+  <div style="text-align:center;padding:12px 0;font-size:12px;color:var(--dim);line-height:1.7;">
+    Assumes single-occupancy vehicles (typical for peak-hour commuters).<br>
+    Vehicle counts: BC Ministry of Transportation, Feb 2025.<br>
+    Transit ridership: APC sensor data, Jan–Mar 2026.
+  </div>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<div class="ft">
+  <p><!-- <span class="br">BC Transit</span> · Enterprise Data &amp; Analytics · 2026<br> -->
+  Double-decker bus: ~76 m² road footprint. Standard 40-ft: ~72 m². Each car in motion: ~28 m². Each parked: ~15 m². Bus length ~12m, car ~4.5m.<br>
+  One hockey rink = 1,580 m² (NHL standard).<br>
+  Corridor data from Automatic Passenger Counter sensors. Capacity = seated capacity of assigned vehicle type.<br>
+  Traffic volumes from BC MoTI permanent count stations.</p>
+</div>
+
+</div><!-- .wrap -->
+
 <script>
-// ─── CONFIG ───
-const SCENARIOS = [
-  {
-    id: '70x-mid',
-    route: 'Route 70X',
-    corridor: 'Hwy 17 — Ferry Express',
-    detail: 'Midday · Swartz Bay → Royal Oak',
-    pax: 70,
-    seats: 72,
-    ppc: 1,
-    busRoadM2: 76,
-  },
-  {
-    id: '95-pm',
-    route: 'Route 95',
-    corridor: 'Douglas St / Trans-Canada',
-    detail: 'PM Peak · Downtown → Langford',
-    pax: 50,
-    seats: 57,
-    ppc: 1,
-    busRoadM2: 76,
-  },
-  {
-    id: '4-pm',
-    route: 'Route 4',
-    corridor: 'Hillside Ave',
-    detail: 'PM Peak · UVic → Downtown',
-    pax: 35,
-    seats: 53,
-    ppc: 1,
-    busRoadM2: 76,
-  },
-  {
-    id: '14-pm',
-    route: 'Route 14',
-    corridor: 'Fort St / Yates',
-    detail: 'PM Peak · UVic → Downtown',
-    pax: 22,
-    seats: 34,
-    ppc: 1,
-    busRoadM2: 72,
-  },
+/* ─── SCENARIOS ─── */
+var SC=[
+  {pax:70,seats:72,ppc:1,bm:76},
+  {pax:50,seats:57,ppc:1,bm:76},
+  {pax:35,seats:53,ppc:1,bm:76},
+  {pax:21,seats:34,ppc:1,bm:72}
 ];
+var _pax=70,_ppc=1,_seats=72,_bm=76;
 
-const CAR_ROAD_M2 = 28;
-const CAR_PARK_M2 = 15;
+function setSc(i){
+  var s=SC[i];_pax=s.pax;_seats=s.seats;_ppc=s.ppc;_bm=s.bm;
+  document.getElementById('pxS').value=_pax;
+  for(var j=0;j<4;j++){var e=document.getElementById('sc'+j);if(e)e.className=j===i?'sc on':'sc';}
+  for(var k=1;k<=4;k++){var p=document.getElementById('pp'+k);if(p)p.className=k===_ppc?'pi mono on':'pi mono';}
+  updA1();
+}
+function freeSlide(v){_pax=parseInt(v);clrSc();updA1();}
+function setPpc(v){_ppc=v;for(var k=1;k<=4;k++){var p=document.getElementById('pp'+k);if(p)p.className=k===v?'pi mono on':'pi mono';}clrSc();updA1();}
+function clrSc(){for(var j=0;j<4;j++){var e=document.getElementById('sc'+j);if(e)e.className='sc';}}
 
-let passengers = 70;
-let ppc = 1;
-let seatCapacity = 72;
-let busRoadM2 = 76;
-let activeScenario = null;
+function updA1(){
+  var cars=Math.ceil(_pax/_ppc);
+  var fill=_seats>0?Math.round(_pax/_seats*100):0;
+  document.getElementById('pxV').textContent=_pax;
+  document.getElementById('a1cars').textContent=cars;
+  document.getElementById('eqC').textContent=cars;
+  document.getElementById('carsLaneLabel').textContent=cars;
+  document.getElementById('capP').textContent=fill+'%';
 
-// ─── ELEMENTS ───
-const paxSlider   = document.getElementById('paxSlider');
-const paxVal      = document.getElementById('paxVal');
-const ppcGroup    = document.getElementById('ppcGroup');
-const titleCar    = document.getElementById('titleCarCount');
-const eqCars      = document.getElementById('eqCars');
-const capBadge    = document.getElementById('capBadge');
-const capPct      = document.getElementById('capPct');
-const capWord     = document.getElementById('capWord');
-const capMsg      = document.getElementById('capMsg');
-const busSvg      = document.getElementById('busSvg');
-const busPctLabel = document.getElementById('busPctLabel');
-const carsLabel   = document.getElementById('carsLabel');
-const carsGrid    = document.getElementById('carsGrid');
-const sRoad       = document.getElementById('sRoad');
-const sPark       = document.getElementById('sPark');
-const sRatio      = document.getElementById('sRatio');
-const sLots       = document.getElementById('sLots');
-const scenarioGrid = document.getElementById('scenarioGrid');
+  var cb=document.getElementById('capB'),cm=document.getElementById('capM');
+  if(fill>=90){cb.className='cb f';cm.textContent=fill+'% of seats taken \u2014 but this one bus is still keeping '+cars+' car'+(cars!==1?'s':'')+' off the road.';}
+  else if(fill>=70){cb.className='cb b';cm.textContent=fill+'% of seats taken \u2014 there\u2019s still room to sit, and it replaces '+cars+' car'+(cars!==1?'s':'')+'.';}
+  else{cb.className='cb k';cm.textContent='Only '+fill+'% of seats taken \u2014 plenty of room to hop on, and already saving space for '+cars+' car'+(cars!==1?'s':'')+'.';}
 
-// ─── BUILD SCENARIO CARDS ───
-SCENARIOS.forEach(sc => {
-  const card = document.createElement('div');
-  card.className = 'scenario-card';
-  card.dataset.id = sc.id;
-  card.innerHTML = `
-    <div class="scenario-route">${sc.route}</div>
-    <div class="scenario-corridor">${sc.corridor}</div>
-    <div class="scenario-detail">${sc.detail}</div>
-    <div class="scenario-pax">${sc.pax}</div>
-  `;
-  card.addEventListener('click', () => activateScenario(sc));
-  scenarioGrid.appendChild(card);
-});
+  var rc=cars*28,pc=cars*15,ratio=Math.round(rc/_bm);
+  document.getElementById('sR').textContent=rinkRound(rc/1580);
+  document.getElementById('sK').textContent=rinkRound(pc/1580);
+  document.getElementById('sA').textContent=ratio+' : 1';
 
-function activateScenario(sc) {
-  activeScenario = sc.id;
-  passengers = sc.pax;
-  seatCapacity = sc.seats;
-  busRoadM2 = sc.busRoadM2;
-  ppc = sc.ppc;
-  paxSlider.value = passengers;
-  // Reset PPC pills
-  ppcGroup.querySelectorAll('.pill').forEach(p => {
-    p.classList.toggle('active', parseInt(p.dataset.v) === ppc);
-  });
-  // Highlight card
-  document.querySelectorAll('.scenario-card').forEach(c => {
-    c.classList.toggle('active', c.dataset.id === sc.id);
-  });
-  update();
+  drawRoad(cars);
 }
 
-// ─── FREE PLAY LISTENERS ───
-paxSlider.addEventListener('input', e => {
-  passengers = parseInt(e.target.value);
-  clearScenarioHighlight();
-  update();
-});
-
-ppcGroup.addEventListener('click', e => {
-  const pill = e.target.closest('.pill');
-  if (!pill) return;
-  ppcGroup.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
-  ppc = parseInt(pill.dataset.v);
-  clearScenarioHighlight();
-  update();
-});
-
-function clearScenarioHighlight() {
-  activeScenario = null;
-  document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
+/* ─── TWO-LANE ROAD DRAWING ─── */
+function busIconSVG(){
+  return '<svg viewBox="0 0 108 44" width="108" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+    '<rect x="2" y="2" width="104" height="40" rx="10" fill="none" stroke="#22d3a7" stroke-width="2"/>'+
+    '<rect x="2" y="2" width="104" height="40" rx="10" fill="#22d3a7" opacity="0.15"/>'+
+    '<rect x="8" y="8" width="20" height="28" rx="4" fill="none" stroke="#22d3a7" stroke-width="1" opacity="0.5"/>'+
+    '<rect x="32" y="10" width="10" height="10" rx="2" fill="none" stroke="#22d3a7" stroke-width="0.8" opacity="0.3"/>'+
+    '<rect x="45" y="10" width="10" height="10" rx="2" fill="none" stroke="#22d3a7" stroke-width="0.8" opacity="0.3"/>'+
+    '<rect x="58" y="10" width="10" height="10" rx="2" fill="none" stroke="#22d3a7" stroke-width="0.8" opacity="0.3"/>'+
+    '<rect x="71" y="10" width="10" height="10" rx="2" fill="none" stroke="#22d3a7" stroke-width="0.8" opacity="0.3"/>'+
+    '<rect x="84" y="10" width="10" height="10" rx="2" fill="none" stroke="#22d3a7" stroke-width="0.8" opacity="0.3"/>'+
+    '<circle cx="16" cy="2" r="3" fill="#22d3a7" opacity="0.4"/>'+
+    '<circle cx="26" cy="2" r="3" fill="#22d3a7" opacity="0.4"/>'+
+    '<circle cx="82" cy="42" r="3" fill="#22d3a7" opacity="0.4"/>'+
+    '<circle cx="92" cy="42" r="3" fill="#22d3a7" opacity="0.4"/>'+
+    '</svg>';
 }
 
-// ─── UPDATE ───
-function update() {
-  const numCars = Math.ceil(passengers / ppc);
-  const fillPct = seatCapacity > 0 ? Math.round((passengers / seatCapacity) * 100) : 0;
-
-  // Title + equation
-  paxVal.textContent = passengers;
-  titleCar.textContent = numCars;
-  eqCars.textContent = numCars;
-  carsLabel.textContent = `= ${numCars} car${numCars !== 1 ? 's' : ''} on the road`;
-
-  // Capacity badge
-  capPct.textContent = fillPct + '%';
-  capBadge.className = 'capacity-badge ' + (fillPct >= 90 ? 'full' : fillPct >= 70 ? 'busy' : 'comfy');
-
-  if (fillPct >= 90) {
-    capWord.textContent = 'full';
-    capMsg.textContent = `This bus is nearly full — and it's keeping ${numCars} car${numCars !== 1 ? 's' : ''} off the road.`;
-  } else if (fillPct >= 70) {
-    capWord.textContent = 'full';
-    capMsg.textContent = `${fillPct}% of seated capacity — there's still room, and it replaces ${numCars} car${numCars !== 1 ? 's' : ''}.`;
-  } else {
-    capWord.textContent = 'full';
-    capMsg.textContent = `Only ${fillPct}% full — plenty of room to hop on, and already saving space for ${numCars} car${numCars !== 1 ? 's' : ''}.`;
-  }
-
-  busPctLabel.textContent = fillPct + '% full';
-
-  // Stats
-  const roadCars = numCars * CAR_ROAD_M2;
-  const parkCars = numCars * CAR_PARK_M2;
-  const ratio = Math.round(roadCars / busRoadM2);
-  const lots = (numCars / 50).toFixed(1);
-
-  sRoad.textContent = roadCars.toLocaleString() + ' m²';
-  sPark.textContent = parkCars.toLocaleString() + ' m²';
-  sRatio.textContent = ratio + ' : 1';
-  sLots.textContent = lots;
-
-  drawBus(fillPct);
-  drawCars(numCars);
+function carIconSVG(delay){
+  return '<div class="car-road" style="animation-delay:'+delay+'ms">'+
+    '<svg viewBox="0 0 40 38" width="40" height="38" fill="none">'+
+    '<rect x="4" y="3" width="32" height="32" rx="7" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>'+
+    '<rect x="9" y="10" width="22" height="14" rx="3" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.7" opacity="0.4"/>'+
+    '<circle cx="10" cy="6" r="1.5" fill="rgba(255,255,255,0.3)"/>'+
+    '<circle cx="30" cy="6" r="1.5" fill="rgba(255,255,255,0.3)"/>'+
+    '<rect x="9" y="31" width="4" height="2" rx="1" fill="#ff5c5c" opacity="0.4"/>'+
+    '<rect x="27" y="31" width="4" height="2" rx="1" fill="#ff5c5c" opacity="0.4"/>'+
+    '</svg></div>';
 }
 
-// ─── DRAW BUS ───
-function drawBus(fillPct) {
-  const h = 190;
-  const bodyTop = 6, bodyBot = h - 6;
-  const bodyH = bodyBot - bodyTop;
-  const fillH = bodyH * Math.min(fillPct, 120) / 120;
-  const fillY = bodyBot - fillH;
-  const r = 14;
+function drawRoad(numCars){
+  // Bus lanes - bus in lane 1, lane 2 empty (showing how little space it needs)
+  document.getElementById('busLane1').innerHTML='<div class="bus-icon-road">'+busIconSVG()+'</div>';
+  document.getElementById('busLane2').innerHTML='<span style="font-size:11px;color:var(--dim);padding:4px 8px;opacity:0.4;font-style:italic;">empty lane</span>';
 
-  const windows = [];
-  const winCount = Math.floor((bodyH - 55) / 18);
-  for (let i = 0; i < winCount; i++) {
-    const wy = bodyTop + 38 + i * 18;
-    windows.push(`<rect x="12" y="${wy}" width="12" height="9" rx="2" fill="none" stroke="var(--bus)" stroke-width="0.8" opacity="0.25"/>`);
-    windows.push(`<rect x="36" y="${wy}" width="12" height="9" rx="2" fill="none" stroke="var(--bus)" stroke-width="0.8" opacity="0.25"/>`);
-  }
+  // Car lanes - split evenly
+  var half=Math.ceil(numCars/2);
+  var mx=60; // max per lane for performance
+  var h1=Math.min(half,mx),h2=Math.min(numCars-half,mx);
+  var html1='',html2='';
+  for(var i=0;i<h1;i++) html1+=carIconSVG(Math.min(i*8,400));
+  if(half>mx) html1+='<span style="font-size:11px;color:var(--dim);padding:8px;font-family:monospace">+'+( half-mx)+' more</span>';
+  for(var i=0;i<h2;i++) html2+=carIconSVG(Math.min(i*8,400));
+  if((numCars-half)>mx) html2+='<span style="font-size:11px;color:var(--dim);padding:8px;font-family:monospace">+'+(numCars-half-mx)+' more</span>';
+  document.getElementById('carLane1').innerHTML=html1;
+  document.getElementById('carLane2').innerHTML=html2;
 
-  busSvg.innerHTML = `
-    <defs>
-      <clipPath id="bc"><rect x="5" y="${bodyTop}" width="50" height="${bodyH}" rx="${r}"/></clipPath>
-    </defs>
-    <rect x="5" y="${bodyTop}" width="50" height="${bodyH}" rx="${r}"
-      fill="none" stroke="var(--bus)" stroke-width="2"/>
-    <rect x="5" y="${fillY}" width="50" height="${fillH + r}"
-      fill="var(--bus)" opacity="0.2" clip-path="url(#bc)"/>
-    <rect x="13" y="${bodyTop + 7}" width="34" height="16" rx="4"
-      fill="none" stroke="var(--bus)" stroke-width="1" opacity="0.45"/>
-    ${windows.join('')}
-    <circle cx="17" cy="${bodyBot + 1}" r="4.5" fill="var(--bus)" opacity="0.4"/>
-    <circle cx="43" cy="${bodyBot + 1}" r="4.5" fill="var(--bus)" opacity="0.4"/>
-    <circle cx="17" cy="${bodyTop + 30}" r="4.5" fill="var(--bus)" opacity="0.4"/>
-    <circle cx="43" cy="${bodyTop + 30}" r="4.5" fill="var(--bus)" opacity="0.4"/>
-  `;
+  // Sync bus road height to match car road
+  setTimeout(function(){
+    var busRoad=document.getElementById('busRoadSurface');
+    var carRoad=document.getElementById('carRoadSurface');
+    if(busRoad && carRoad){
+      busRoad.style.minHeight=carRoad.offsetHeight+'px';
+    }
+  },50);
 }
 
-// ─── DRAW CARS ───
-function drawCars(count) {
-  const max = 120;
-  const show = Math.min(count, max);
-  let html = '';
-  for (let i = 0; i < show; i++) {
-    const d = Math.min(i * 10, 500);
-    html += `<div class="car-slot" style="animation-delay:${d}ms">
-      <svg viewBox="0 0 38 64" fill="none">
-        <line x1="0" y1="0" x2="0" y2="64" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="3 2.5"/>
-        <line x1="38" y1="0" x2="38" y2="64" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="3 2.5"/>
-        <rect x="6" y="8" width="26" height="48" rx="9"
-          fill="none" stroke="var(--text-dim)" stroke-width="1.2"/>
-        <rect x="10" y="19" width="18" height="17" rx="3"
-          fill="none" stroke="var(--text-dim)" stroke-width="0.7" opacity="0.4"/>
-        <line x1="10" y1="21" x2="28" y2="21" stroke="var(--text-dim)" stroke-width="0.6" opacity="0.35"/>
-        <line x1="10" y1="34" x2="28" y2="34" stroke="var(--text-dim)" stroke-width="0.6" opacity="0.35"/>
-        <circle cx="13" cy="12" r="1.6" fill="var(--text-dim)" opacity="0.35"/>
-        <circle cx="25" cy="12" r="1.6" fill="var(--text-dim)" opacity="0.35"/>
-        <rect x="11" y="52" width="3.5" height="1.8" rx="0.8" fill="var(--accent)" opacity="0.4"/>
-        <rect x="23.5" y="52" width="3.5" height="1.8" rx="0.8" fill="var(--accent)" opacity="0.4"/>
-      </svg>
-    </div>`;
-  }
-  if (count > max) {
-    html += `<div style="display:flex;align-items:center;padding:8px 12px;
-      font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim)">
-      + ${count - max} more</div>`;
-  }
-  carsGrid.innerHTML = html;
+function rinkRound(val){
+  var r=Math.round(val*2)/2;
+  if(r===0 && val>0) return '< \u00BD';
+  if(r===0.5) return '\u00BD';
+  if(r%1===0.5) return Math.floor(r)+'\u00BD';
+  return r.toString();
 }
 
-// ─── INIT ───
-activateScenario(SCENARIOS[0]);
+/* ─── ACT 3: WHAT IF ─── */
+function updW1(v){
+  var pct=parseInt(v);
+  var cars=Math.round(7343*pct/100);
+  var buses=Math.ceil(cars/50);
+  document.getElementById('w1pct').textContent=pct+'%';
+  document.getElementById('w1cars').textContent=cars.toLocaleString();
+  document.getElementById('w1bus').textContent=buses;
+  document.getElementById('w1road').textContent=rinkRound(cars*28/1580);
+  document.getElementById('w1park').textContent=rinkRound(cars*15/1580);
+}
+function updW2(v){
+  var pct=parseInt(v);
+  var cars=Math.round(1463*pct/100);
+  var buses=Math.ceil(cars/22);
+  document.getElementById('w2pct').textContent=pct+'%';
+  document.getElementById('w2cars').textContent=cars.toLocaleString();
+  document.getElementById('w2bus').textContent=buses;
+  document.getElementById('w2road').textContent=rinkRound(cars*28/1580);
+  document.getElementById('w2park').textContent=rinkRound(cars*15/1580);
+}
+
+/* ─── INIT ─── */
+setSc(0);
+updW1(5);
+updW2(5);
 </script>
-
 </body>
 </html>
